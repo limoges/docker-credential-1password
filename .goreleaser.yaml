@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+---
+version: 2
+
+builds:
+  - goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - '-s -w '
+      - '-X github.com/docker/docker-credential-helpers/credentials.version={{.Version}}'
+      - '-X github.com/docker/docker-credential-helpers/credentials.Revision={{.Commit}}'
+      - '-X github.com/docker/docker-credential-helpers/credentials.Name=docker-credential-1password'
+      - '-X github.com/docker/docker-credential-helpers/credentials.Package=github.com/limoges/docker-credential-1password'
+
+kos:
+  - repositories:
+      - ghcr.io/limoges/docker-credential-1password
+    platforms:
+      - linux/arm64
+      - linux/amd64
+    tags:
+      - latest
+      - "{{.Tag}}"
+      - "{{.Version}}"
+    bare: true
+    preserve_import_paths: false
+    labels:
+      "org.opencontainers.image.source": "https://github.com/limoges/docker-credential-1password"
+      "org.opencontainers.image.description": "Use docker credentials stored in 1password"
+    annotations:
+      "org.opencontainers.image.source": "https://github.com/limoges/docker-credential-1password"
+      "org.opencontainers.image.description": "Use docker credentials stored in 1password"
+
+archives:
+  - formats: [tar.gz]
+    # this name template makes the OS and Arch compatible with the results of `uname`.
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # use zip for windows archives
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
